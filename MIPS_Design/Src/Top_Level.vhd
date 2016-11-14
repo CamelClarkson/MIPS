@@ -26,12 +26,24 @@ entity Top_Level is
     iClk       : in std_logic;
     iRst       : in std_logic;
     iCommand32 : in std_logic_vector(31 downto 0);
-    oResult1    : out std_logic_vector(31 downto 0);
-    oResult2    : out std_logic_vector(31 downto 0)
+    Result    : out std_logic_vector(31 downto 0)
    );
 end Top_Level;
 
 architecture Structural of Top_Level is
+
+component ALU is
+Port ( A        : in  STD_LOGIC_VECTOR (31 downto 0); -- operands 1
+       B        : in  STD_LOGIC_VECTOR (31 downto 0); -- operands 2
+       P3       : in  STD_LOGIC;                      -- Control signal 3
+       P2       : in  STD_LOGIC;                      -- Conrtol signal 2
+       P1       : in  STD_LOGIC;                      -- Conrtol signal 1
+       P0       : in  STD_LOGIC;                      -- Conrtol signal 0
+       F        : out STD_LOGIC_VECTOR (31 downto 0); -- ALU result
+       COUT     : out STD_LOGIC;                      -- carry out
+       Overflow : out STD_LOGIC;                      -- overflow flag, which masks the overflow caused by slt
+       ZERO     : out STD_LOGIC);                     -- zero flag
+end component;
 
 component Register_File is
   Port (
@@ -145,6 +157,19 @@ Inst_Register_File: Register_File
     o_rs_data  => s_rs_data
     );
     
+Inst_ALU: ALU
+    port map( A        => s_rs_data,
+           B        => s_B_ALU_data,
+           P3       => s_ALU_Control(3),                  
+           P2       => s_ALU_Control(2),
+           P1       => s_ALU_Control(1),
+           P0       => s_ALU_Control(0),
+           F        => Result,
+           COUT     => open,
+           Overflow => open,
+           ZERO     => open
+           );  
+    
 Inst_mux_5bit: mux_5bit
         port map(
         SEL    => s_RegDst,
@@ -180,8 +205,5 @@ Inst_o_ALU_Control: o_ALU_Control
 -- outputs  
     o_ALU_Control => s_ALU_Control
    );
-
-oResult1 <= s_rs_data;
-oResult2 <= s_B_ALU_data;
 
 end Structural;
